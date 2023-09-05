@@ -43,7 +43,7 @@ dietary= ['Select','vegetarian','vegan', 'gluten-free','nut-free','healthy', 'da
 #processed_df = func.k_means(almost_df)
 
 #Actual DataFrame
-processed_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/model_df_final.csv')
+processed_df = pd.read_csv('../raw_data/model_df.csv')
 
 fail_safe_statement= "No Other Recipe"
 
@@ -83,7 +83,7 @@ def intro():
     with row0_2:
         st.text("")
         # path = os.path.join(os.path.dirname(os.getcwd()),'raw_data')
-        imagelogo = Image.open('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/logo.jpg')
+        imagelogo = Image.open('../raw_data/model_df.csv')
         st.image(imagelogo, use_column_width=True)
 
         #blue back = #F0F2F6
@@ -522,39 +522,39 @@ def output():
     ## SHOPPING LIST ###
     ####################
 
-        row11_spacer1,row11_1,row11_spacer2,row11_2, row11_spacer3 = st.columns((.2, 1.6, .2, 1.6, .2))
+        # row11_spacer1,row11_1,row11_spacer2,row11_2, row11_spacer3 = st.columns((.2, 1.6, .2, 1.6, .2))
 
-        shopping_index_list = []
-        try:
-            ind1 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[0]].index.tolist()[0]
-            shopping_index_list.append(ind1)
+        # shopping_index_list = []
+        # try:
+        #     ind1 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[0]].index.tolist()[0]
+        #     shopping_index_list.append(ind1)
 
-        except:
-            None
-        try:
-            ind2 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[1]].index.tolist()[0]
-            shopping_index_list.append(ind2)
-        except:
-            None
-        try:
-            ind3 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[2]].index.tolist()[0]
-            shopping_index_list.append(ind3)
-        except:
-            None
+        # except:
+        #     None
+        # try:
+        #     ind2 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[1]].index.tolist()[0]
+        #     shopping_index_list.append(ind2)
+        # except:
+        #     None
+        # try:
+        #     ind3 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[2]].index.tolist()[0]
+        #     shopping_index_list.append(ind3)
+        # except:
+        #     None
 
 
 
-        fridge = shopping_list.get_shopping_list(shopping_index_list)
-        st.write(fridge)
-        with row11_1:
-            st.subheader("Your Shopping List:")
-            for item in df.ingredients[0]:
-                st.write(f"- {item}")
+        # fridge = shopping_list.get_shopping_list(shopping_index_list)
+        # st.write(fridge)
+        # with row11_1:
+        #     st.subheader("Your Shopping List:")
+        #     for item in df.ingredients[0]:
+        #         st.write(f"- {item}")
 
-        with row11_2:
-            st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
+        # with row11_2:
+        #     st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
 
-        st.write("------")
+        # st.write("------")
 
 
 

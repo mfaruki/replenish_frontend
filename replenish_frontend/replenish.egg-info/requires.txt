@@ -1,0 +1,15 @@
+pytest
+pylint
+ipdb
+jupyterlab
+numpy
+pandas
+matplotlib
+seaborn
+scikit-learn
+nltk
+fastapi
+pytz
+uvicorn
+httpx
+pytest-asyncio
