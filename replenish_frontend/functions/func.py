@@ -3,9 +3,10 @@ from sklearn.cluster import KMeans
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import string
-
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/bbc_final_df.csv')
 
@@ -26,8 +27,29 @@ def ingredients_list(sample_txt):
         elements.append(str(word))
     return elements
 
+def remove_most_common_ings(ing_list):
+    too_common = ['oil', 'butter', 'salt', 'clove', 'cloves']
+    no_stopwords = [w for w in ing_list if not w in too_common]
+    return no_stopwords
 
-def k_means(bbc_final_df, clusters=10, min_df=0.005, max_df=0.99):
+
+
+def cluster_ingredient_similarity_metric(model_df):
+    '''Clusters with least variation of ingredients per recipe - want to maximise'''
+    similarity_scores = []
+    for i in range(model_df['cluster'].nunique()):
+        ingredients_cluster = model_df[model_df['cluster']==i]['clean_text']
+        ingredients_cluster_list = ingredients_cluster.tolist()
+        vectorizer = TfidfVectorizer()
+        vectors = vectorizer.fit_transform(ingredients_cluster_list)
+        similarity = cosine_similarity(vectors)
+        similarity_scores.append(similarity.mean())
+    ingredient_similarity_score = np.mean(similarity_scores)
+
+    return ingredient_similarity_score
+
+
+def k_means(bbc_final_df, clusters=75, min_df=0.00001, max_df=0.3):
     """Returns the df inputted with an additional column with their respective cluster.
     Ensure that the ingredients columns is a string of a list called 'final_ingredients'.
     I.E row 1, col ingredient is '[bread,cheese,pasta,onions]'"""
@@ -47,7 +69,8 @@ def k_means(bbc_final_df, clusters=10, min_df=0.005, max_df=0.99):
 
     # Step 2: Convert the final ingredients into a "sentence" for vectorising
     df['ingredients_list'] = df['final_ingredients'].apply(ingredients_list)
-    df['clean_text']=df['ingredients_list'].map(lambda x: model_specific_preprocessing(x))
+    df['ingredients_list_2'] = df['ingredients_list'].apply(remove_most_common_ings)
+    df['clean_text']=df['ingredients_list_2'].map(lambda x: model_specific_preprocessing(x))
 
     # Step 3: Convert ingredients sentence into a bag-of-words representation
     vectorizer = CountVectorizer(min_df=min_df, max_df = max_df)
@@ -60,11 +83,3 @@ def k_means(bbc_final_df, clusters=10, min_df=0.005, max_df=0.99):
     return df
 
 
-# almost_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/bbc_final_df.csv')
-
-# filtered_df = almost_df[almost_df['recipe_title'] != 'n']
-# # print(filtered_df.columns)
-# grouped_df = filtered_df.groupby('recipe_title')['dietary'].apply(lambda x: ', '.join(x)).reset_index().rename(columns = {'dietary':'combined'})
-# # print(grouped_df)
-# dd = k_means()
-# print(type(dd))
