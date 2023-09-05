@@ -1,0 +1,26 @@
+#coding stuff
+pytest
+pylint
+ipdb
+jupyterlab
+
+#python math libs
+numpy
+pandas
+
+#graphoing/visuals
+matplotlib
+seaborn
+
+#modelling
+scikit-learn
+nltk
+
+# API
+fastapi         # API framework
+pytz            # time zone management
+uvicorn         # web server
+
+# tests
+httpx           # HTTP client
+pytest-asyncio  # asynchronous I/O support for pytest
