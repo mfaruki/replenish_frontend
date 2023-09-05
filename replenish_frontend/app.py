@@ -556,7 +556,7 @@ def output():
         with row11_2:
             st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
 
-        st.write("------")
+        st.write("---------")
 
 
 
