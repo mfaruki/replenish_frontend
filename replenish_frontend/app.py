@@ -11,7 +11,9 @@ import string
 from functions import func
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
+import matplotlib.pyplot as plt
+import seaborn as sns
+from functions import shopping_list
 
 #Setting Website Configuration
 st.set_page_config(
@@ -31,17 +33,19 @@ cuisines = ['Select','american','australian', 'asian','brazilian','british','caj
             'thai', 'turkish', 'vietnamese']
 #cuisines = [cuisine.title() for cuisine in cuisines]
 
-dietary= ['Select', 'none','vegetarian','vegan', 'gluten-free','nut-free','healthy', 'dairy-free', 'egg-free', 'low-calorie', 'low-sugar',
+dietary= ['Select','vegetarian','vegan', 'gluten-free','nut-free','healthy', 'dairy-free', 'egg-free', 'low-calorie', 'low-sugar',
            'high-protein', 'low-fat', 'high-fibre', 'keto', 'low-carb']
 #dietary = [diet.title() for diet in dietary]
 
 
-#Actual Dataframe
-path = os.path.join(os.path.dirname(os.getcwd()),'raw_data')
-almost_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/bbc_final_df.csv')
+#path = os.path.join(os.path.dirname(os.getcwd()),'raw_data')
+#almost_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/bbc_final_df.csv')
+#processed_df = func.k_means(almost_df)
 
-#static_df= almost_df[almost_df['stars']!='n']
-processed_df = func.k_means(almost_df)
+#Actual DataFrame
+processed_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/model_df_final.csv')
+
+fail_safe_statement= "No Other Recipe"
 
 
 #DataFrame for Visuals
@@ -79,11 +83,19 @@ def intro():
     with row0_2:
         st.text("")
         # path = os.path.join(os.path.dirname(os.getcwd()),'raw_data')
-        imagelogo = Image.open('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/logo2.jpg')
+        imagelogo = Image.open('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/logo.jpg')
         st.image(imagelogo, use_column_width=True)
 
         #blue back = #F0F2F6
         # blue text = #1A2256  - white secondary back and black prim
+
+        # [theme]
+        # primaryColor="#121111"
+        # backgroundColor="#EEF3EF"
+        # secondaryBackgroundColor="#DEE0DA"
+        # textColor="#274724"
+        # font="serif"
+
 
     st.text("")
     row2_spacer1, row2_1, row2_spacer2 = st.columns((.1, 3.2, .1))
@@ -114,7 +126,7 @@ def intro():
         str_clusters = str(num_clusters_in_df) + " Ingredient Clusters"
         st.markdown(str_clusters)
     with row4_3:
-        total_preferences_in_df = len(cuisines) + len(dietary)
+        total_preferences_in_df = len(np.unique(processed_df.preference)) + len(dietary)
         str_preferences =str(total_preferences_in_df) + " Preferences"
         st.markdown(str_preferences)
 
@@ -200,9 +212,13 @@ def intro():
 #########################################################################         PAGE 2           ##########################
 
 def output():
-    """Website page 2: Given the user's food-preferences the user is returned
-    a vareity of recipes which hold to the most similar in ingredients. Minimal ingredients
-    and variety of recipes """
+    """ Website page 2:
+    Given the user's food-preferences the user is returned a vareity of recipes sorted by star rating/
+    User then states which recipe they chose and then they want recipes of a similar genre or very different.
+    The user is then given, according their choice of similar or different recipes,
+    recipes of which use most similar ingredients.
+    Finally the user is returned a shopping list """
+
     st.title('Find Waste-Minimizing Recipes with Replenish!')
 
     row6_spacer1, row6_1, row6_spacer2 = st.columns((.2, 7.1, .2))
@@ -223,18 +239,18 @@ def output():
         else:
             cuis_star_sorted_df=processed_df[processed_df['stars']!='n'].reset_index(drop=True).sort_values(by='stars', ascending=False)
 
-        st.write(cuis_star_sorted_df)
+        #st.write(cuis_star_sorted_df)
 
 
     with row7_2:
         diet_pref = st.selectbox ("Dietary", dietary,key = 'diet')
         if diet_pref != 'Select':
-            diet_df= (processed_df[processed_df.dietary==diet_pref])
+            diet_df= (processed_df[processed_df.combined.str.contains('vegan')])
             diet_star_sorted_df=diet_df[diet_df['stars']!='n'].reset_index(drop=True).sort_values(by='stars', ascending=False)
         else:
             diet_star_sorted_df=processed_df[processed_df['stars']!='n'].reset_index(drop=True).sort_values(by='stars', ascending=False)
 
-        st.write(diet_star_sorted_df)
+        #st.write(diet_star_sorted_df)
 
 
     st.write("--------------")
@@ -262,12 +278,9 @@ def output():
 
     if center_button:
 
-        row8_spacer1,row8_1,row8_spacer2,row8_2,row8_spacer3,row8_3,row8_spacer4 = st.columns((.05, 1, .05, 1, .05, 1, .05))
         #title, plot, list carbon
 
         #title, ingredients for 3 recipes of top stars for chosen category
-        # if cuisine_pref != 'Select' and diet_pref != 'Select':
-        #     initial_df= (diet_star_sorted_df[diet_star_sorted_df.preference ==cuisine_pref])
 
         if cuisine_pref != 'Select' and diet_pref != 'Select':
             initial_df= diet_star_sorted_df
@@ -283,7 +296,10 @@ def output():
             initial_df= diet_star_sorted_df
 
         initial_df.reset_index(drop=True,inplace=True)
-        st.write(initial_df)
+
+        # st.write(initial_df)
+
+        row8_spacer1,row8_1,row8_spacer2,row8_2,row8_spacer3,row8_3,row8_spacer4 = st.columns((.05, 1, .05, 1, .05, 1, .05))
 
         with row8_1:
             recipe_1 = f'1. {str(initial_df.recipe_title[0])}'
@@ -294,21 +310,27 @@ def output():
                     st.write(f"- {item}")
 
         with row8_2:
+            try:
 
-            recipe_2 = f'2. {str(initial_df.recipe_title[1])}'
-            st.subheader(recipe_2)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in initial_df.ingredients[1].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+                recipe_2 = f'2. {str(initial_df.recipe_title[1])}'
+                st.subheader(recipe_2)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in initial_df.ingredients[1].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
 
         with row8_3:
-            recipe_2 = f'3. {str(initial_df.recipe_title[2])}'
-            st.subheader(recipe_2)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in initial_df.ingredients[2].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+            try:
+                recipe_2 = f'3. {str(initial_df.recipe_title[2])}'
+                st.subheader(recipe_2)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in initial_df.ingredients[2].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
 
     st.write("--------------")
 
@@ -339,6 +361,7 @@ def output():
 
     if st.button("Stay in your comfort zone"):
 
+        row10_spacer1,row10_1,row10_spacer2,row10_2,row10_spacer3,row10_3,row10_spacer4 = st.columns((.05, 1, .05, 1, .05, 1, .05))
         if cuisine_pref != 'Select' and diet_pref != 'Select':
             similar_df= diet_star_sorted_df
             similar_df = (similar_df[similar_df.preference ==cuisine_pref]).reset_index(drop=True)
@@ -352,33 +375,28 @@ def output():
         if diet_pref != 'Select' and cuisine_pref == 'Select':
             similar_df= diet_star_sorted_df
 
-        st.write(similar_df)
+
         similar_df.reset_index(drop=True,inplace=True)
+        #st.write(similar_df)
 
-
-        #no_repeat=list(initial_df.recipe_title[0:3])
-
-        row10_spacer1,row10_1,row10_spacer2,row10_2,row10_spacer3,row10_3,row10_spacer4 = st.columns((.05, 1, .05, 1, .05, 1, .05))
-        #similar_df=(similar_df[similar_df.recipe_title != no_repeat])
         final_similar_df=(similar_df[similar_df.cluster== similar_df.cluster[recipe_pick-1]]).reset_index(drop=True)
-
         index1 = final_similar_df[final_similar_df['recipe_title'] == similar_df.recipe_title[recipe_pick-1]].index.tolist()[0]
 
+        #############################################################
+        ################# COSINE SIMILARITY SORTING #################
+        #############################################################
 
-
-        ###############  COSINE SIMILARITY SORTING
         ingredients_cluster_list1 = final_similar_df.clean_text.tolist()
         vectorizer1 = TfidfVectorizer()
         vectors1 = vectorizer1.fit_transform(ingredients_cluster_list1)
         similarity1 = cosine_similarity(vectors1)
         similar1= pd.DataFrame(similarity1)
         final_similar_df['sim']= similar1[index1]
-        #################
 
         final_similar_df=final_similar_df.sort_values(by='sim',ascending=False)
 
 
-        #title, plot, list carbon
+#       ################# TITLE INGREDIENT DEETS per recipe
         with row10_1:
             new_recipe1 = str(final_similar_df.recipe_title[0])
             st.subheader(new_recipe1)
@@ -388,20 +406,28 @@ def output():
                     st.write(f"- {item}")
 
         with row10_2:
-            new_recipe2 = str(final_similar_df.recipe_title[1])
-            st.subheader(new_recipe2)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in final_similar_df.ingredients[1].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+            try:
+                new_recipe2 = str(final_similar_df.recipe_title[1])
+                st.subheader(new_recipe2)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in final_similar_df.ingredients[1].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
 
         with row10_3:
-            new_recipe3 = str(final_similar_df.recipe_title[2])
-            st.subheader(new_recipe3)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in final_similar_df.ingredients[2].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+            try:
+                new_recipe3 = str(final_similar_df.recipe_title[2])
+                st.subheader(new_recipe3)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in final_similar_df.ingredients[2].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
+
+
 
     ####################
     # DIVERSE RECIPES ##
@@ -430,42 +456,35 @@ def output():
             different_df= diet_star_sorted_df
             fun_df = diet_star_sorted_df
 
-        st.write(different_df)
-        different_df.reset_index(drop=True,inplace=True)
+
+        chosen_recipe_row = pd.DataFrame(fun_df.iloc[recipe_pick-1]).T
+        diff_with_original = pd.concat([different_df,chosen_recipe_row])
+        diff_with_original.reset_index(drop=True,inplace=True)
         fun_df.reset_index(drop=True,inplace=True)
 
-        ###############
-
-
-        ########
-        '''CAMILLE YOU NEED TO REMEMEBR YOU FILTER OUT AGAINST THE CUISINE SO IT DOES NOT EXIST IN THE DATAFRAME FOR YOU TO GET THE INDEX FROM
-        MAYBE:
-        add and keep colums in the above of the one with the index '''
 
         row10_spacer1,row10_1,row10_spacer2,row10_2,row10_spacer3,row10_3,row10_spacer4 = st.columns((.05, 1, .05, 1, .05, 1, .05))
-        #final_similar_df=(similar_df[similar_df.cluster== similar_df.cluster[recipe_pick-1]]).reset_index(drop=True)
 
-        final_diff_df=(different_df[different_df.cluster==fun_df.cluster[recipe_pick-1]]) #.reset_index(drop=True)
+        final_diff_df=(diff_with_original[diff_with_original.cluster==fun_df.cluster[recipe_pick-1]]).reset_index(drop=True).drop_duplicates()
+        index2 = final_diff_df[final_diff_df.recipe_title == fun_df.recipe_title[recipe_pick-1]].index.tolist()[0]
 
-        final_diff_df
+        #############################################################
+        ################# COSINE SIMILARITY SORTING #################
+        #############################################################
 
-        #index2 = final_diff_df[final_diff_df.recipe_title == fun_df.recipe_title[recipe_pick-1]].index.tolist()[0]
-        st.write(final_diff_df[final_diff_df.recipe_title == fun_df.recipe_title[recipe_pick-1]].index.tolist()[0])
-
-
-        ###############  COSINE SIMILARITY SORTING
         ingredients_cluster_list2 = final_diff_df.clean_text.tolist()
         vectorizer2 = TfidfVectorizer()
         vectors2 = vectorizer2.fit_transform(ingredients_cluster_list2)
         similarity2 = cosine_similarity(vectors2)
         similar2= pd.DataFrame(similarity2)
         final_diff_df['sim']= similar2[index2]
-        #################
 
-        final_diff_df=final_diff_df.sort_values(by='sim',ascending=False)
+        final_diff_df=final_diff_df.sort_values(by='sim',ascending=False).reset_index(drop=True)
 
-        final_diff_df
-        #title, plot, list carbon
+        #st.write(final_diff_df)
+
+
+        ################## TITLE INGREDIENT DEETS per recipe
         with row10_1:
             diff_recipe1 = str(final_diff_df.recipe_title[0])
             st.subheader(diff_recipe1)
@@ -475,38 +494,67 @@ def output():
                     st.write(f"- {item}")
 
         with row10_2:
-            diff_recipe2 = str(final_diff_df.recipe_title[1])
-            st.subheader(diff_recipe2)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in final_diff_df.ingredients[1].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+            try:
+                diff_recipe2 = str(final_diff_df.recipe_title[1])
+                st.subheader(diff_recipe2)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in final_diff_df.ingredients[1].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
 
         with row10_3:
-            diff_recipe3 = str(final_diff_df.recipe_title[2])
-            st.subheader(diff_recipe3)
-            st.text(f"Carbon Footprint:{carb}")
-            for item in final_diff_df.ingredients[2].split(','):
-                if item != " ":
-                    st.write(f"- {item}")
+            try:
 
-    st.write("------")
+                diff_recipe3 = str(final_diff_df.recipe_title[2])
+                st.subheader(diff_recipe3)
+                st.text(f"Carbon Footprint:{carb}")
+                for item in final_diff_df.ingredients[2].split(','):
+                    if item != " ":
+                        st.write(f"- {item}")
+            except:
+                st.subheader(fail_safe_statement)
+
+        st.write("------")
 
     ####################
     ## SHOPPING LIST ###
     ####################
 
-    row11_spacer1,row11_1,row11_spacer2,row11_2, row11_spacer3 = st.columns((.2, 1.6, .2, 1.6, .2))
+        row11_spacer1,row11_1,row11_spacer2,row11_2, row11_spacer3 = st.columns((.2, 1.6, .2, 1.6, .2))
 
-    with row11_1:
-        st.subheader("Your Shopping List:")
-        for item in df.ingredients[0]:
-            st.write(f"- {item}")
+        shopping_index_list = []
+        try:
+            ind1 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[0]].index.tolist()[0]
+            shopping_index_list.append(ind1)
 
-    with row11_2:
-        st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
+        except:
+            None
+        try:
+            ind2 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[1]].index.tolist()[0]
+            shopping_index_list.append(ind2)
+        except:
+            None
+        try:
+            ind3 = processed_df[processed_df.recipe_title == final_diff_df.recipe_title[2]].index.tolist()[0]
+            shopping_index_list.append(ind3)
+        except:
+            None
 
-    st.write("------")
+
+
+        fridge = shopping_list.get_shopping_list(shopping_index_list)
+        st.write(fridge)
+        with row11_1:
+            st.subheader("Your Shopping List:")
+            for item in df.ingredients[0]:
+                st.write(f"- {item}")
+
+        with row11_2:
+            st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
+
+        st.write("------")
 
 
 
@@ -520,15 +568,29 @@ def graphing():
     """Third website page will show the distribution of preferences across the clusters
     determined by Replenish's model, where the cluster to be seen is inputted/chosen by
     the viewer."""
-
     st.title("Graphing Replenish's Cluster Distributions!")
-    select = st.selectbox("Select a cluster group you would like to observe", range(1, max(df.cluster)+1))
+    select = st.selectbox("Select a cluster group you would like to observe", range(1, max(processed_df.cluster)+2))
 
     if st.button("Submit"):
         st.text("Below is the distribution of preference categories")
         st.text(f"within the ingredient-based cluster {select}")
 
+        cluster_counts = processed_df.groupby('cluster')['recipe_title'].count().reset_index()
+        cluster_counts.rename(columns={'recipe_title': 'Number of Recipes'}, inplace=True)
 
+        cluster_df = processed_df[processed_df['cluster'] == select]
+        cuisine_counts = cluster_df['preference'].value_counts()
+        fig_df = pd.DataFrame(cuisine_counts).reset_index()
+
+        fig= plt.figure(figsize=(20, 10), facecolor=(0,0,0,0))
+        sns.barplot(data=fig_df, x = 'index', y = 'preference')
+        plt.xlabel('Preference', fontsize=25, fontname="Times New Roman",fontweight="bold")
+        plt.ylabel('Number of Recipes', fontsize=25, fontname="Times New Roman",fontweight="bold")
+        plt.title(f'Cluster {select} - Preference vs. Number of Recipes', fontsize=40, fontname="Times New Roman",fontweight="bold")
+        plt.xticks(rotation=45, fontsize=15, fontname="Times New Roman")
+        plt.yticks(fontsize=15, fontname="Times New Roman")
+
+        st.pyplot(fig)
 
 page_names_to_funcs = {
     "About Us": intro,

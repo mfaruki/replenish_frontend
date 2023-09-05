@@ -6,7 +6,7 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 import string
 from sklearn.metrics.pairwise import cosine_similarity
-
+import numpy as np
 
 df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/bbc_final_df.csv')
 
@@ -45,7 +45,7 @@ def cluster_ingredient_similarity_metric(model_df):
         similarity = cosine_similarity(vectors)
         similarity_scores.append(similarity.mean())
     ingredient_similarity_score = np.mean(similarity_scores)
-    
+
     return ingredient_similarity_score
 
 
@@ -81,3 +81,5 @@ def k_means(bbc_final_df, clusters=75, min_df=0.00001, max_df=0.3):
     df['cluster'] = kmeans.fit_predict(counted_words)
 
     return df
+
+
