@@ -43,8 +43,8 @@ dietary= ['Select','vegetarian','vegan', 'gluten-free','nut-free','healthy', 'da
 #processed_df = func.k_means(almost_df)
 
 #Actual DataFrame
-processed_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/model_df_final.csv')
-
+#processed_df = pd.read_csv('/Users/camillemolen/code/mfaruki/replenish_frontend/raw_data/model_df_final.csv')
+processed_df = pd.read_csv('../raw_data/model_df_final.csv')
 fail_safe_statement= "No Other Recipe"
 
 
@@ -544,23 +544,19 @@ def output():
 
 
 
-        fridge = shopping_list.get_shopping_list(shopping_index_list)
-        st.write(fridge)
+        # fridge = shopping_list.final_dataframe(shopping_index_list)
+        fridge = pd.DataFrame(shopping_list.final_dataframe(shopping_index_list))
+        fridge = fridge[fridge['quantity_x']!=0]
         with row11_1:
             st.subheader("Your Shopping List:")
-            for item in df.ingredients[0]:
-                st.write(f"- {item}")
+            for idx, row in fridge.iterrows():
+                # st.write(row)
+                st.write(f"- {row['product']} : {row['quantity_x']} {row['unit']}")
 
         with row11_2:
             st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
 
-        st.write("------")
-
-
-
-
-
-
+        st.write("---------")
 
 ################################################################################         PAGE 3           ##########################
 
