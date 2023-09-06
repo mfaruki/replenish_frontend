@@ -428,6 +428,45 @@ def output():
                 st.subheader(fail_safe_statement)
 
 
+        ####################
+        ## SHOPPING LIST ###
+        ####################
+        row11_spacer1,row11_1,row11_spacer2,row11_2, row11_spacer3 = st.columns((.2, 1.6, .2, 1.6, .2))
+
+        shopping_index_list = []
+        try:
+            ind1 = processed_df[processed_df.recipe_title == final_similar_df.recipe_title[0]].index.tolist()[0]
+            shopping_index_list.append(ind1)
+
+        except:
+            None
+        try:
+            ind2 = processed_df[processed_df.recipe_title == final_similar_df.recipe_title[1]].index.tolist()[0]
+            shopping_index_list.append(ind2)
+        except:
+            None
+        try:
+            ind3 = processed_df[processed_df.recipe_title == final_similar_df.recipe_title[2]].index.tolist()[0]
+            shopping_index_list.append(ind3)
+        except:
+            None
+
+
+
+        # fridge = shopping_list.final_dataframe(shopping_index_list)
+        fridge = pd.DataFrame(shopping_list.final_dataframe(shopping_index_list))
+        fridge = fridge[fridge['quantity_x']!=0]
+        with row11_1:
+            st.subheader("Your Shopping List:")
+            for idx, row in fridge.iterrows():
+                # st.write(row)
+                st.write(f"- {row['product']} : {row['quantity_x']} {row['unit']}")
+
+        with row11_2:
+            st.subheader(f"Your Shopping List's Carbon Foodprint is: {carb}")
+
+        st.write("---------")
+
 
     ####################
     # DIVERSE RECIPES ##
